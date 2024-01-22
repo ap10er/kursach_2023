@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="800.0" style="-fx-background-color: #000000;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Pages.GraphPage">
+    <children>
+        <Button fx:id="GraphPageBack" layoutX="313.0" layoutY="333.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="184.0" style="-fx-background-color: #ed9121;" text="Вернуться" textAlignment="CENTER">
+            <font>
+                <Font name="Gabriola" size="30.0" />
+            </font>
+        </Button>
+        <Text fx:id="GraphPageText" fill="#ed9121" layoutY="47.0" strokeType="OUTSIDE" strokeWidth="0.0" text="График зарплаты пользователей из отдела" textAlignment="CENTER" wrappingWidth="800.0">
+            <font>
+                <Font name="Gabriola" size="48.0" />
+            </font>
+        </Text>
+        <BarChart fx:id="salaryChart" layoutX="17.0" layoutY="67.0" prefHeight="266.0" prefWidth="775.0">
+            <xAxis>
+                <CategoryAxis label="Дата" />
+            </xAxis>
+            <yAxis>
+                <NumberAxis label="Зарплата" prefHeight="191.0" prefWidth="42.0" />
+            </yAxis>
+        </BarChart>
+    </children>
+</AnchorPane>

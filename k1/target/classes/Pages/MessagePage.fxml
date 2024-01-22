@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="800.0" style="-fx-background-color: #000000;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Pages.MessagePage">
+    <children>
+        <Button fx:id="MessagePageBack" layoutX="416.0" layoutY="329.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="184.0" style="-fx-background-color: #ed9121;" text="Вернуться" textAlignment="CENTER">
+            <font>
+                <Font name="Gabriola" size="30.0" />
+            </font>
+        </Button>
+        <Text fill="#ed9121" layoutX="311.0" layoutY="55.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Меню уведомлений" textAlignment="CENTER" wrappingWidth="399.0">
+            <font>
+                <Font name="Gabriola" size="48.0" />
+            </font>
+        </Text>
+        <Pane prefHeight="400.0" prefWidth="300.0" style="-fx-background-color: #ed9121;">
+         <children>
+            <TextField fx:id="MessagePageLogin" layoutX="13.0" layoutY="14.0" prefHeight="47.0" prefWidth="275.0" promptText="Логин сотрудника" style="-fx-background-color: black; -fx-prompt-text-fill: #ed9121; -fx-text-fill: #ed9121;">
+               <font>
+                  <Font name="Gabriola" size="25.0" />
+               </font>
+            </TextField>
+            <TextArea fx:id="MessagePageTextField" layoutX="13.0" layoutY="68.0" prefHeight="325.0" prefWidth="275.0" promptText="Введите сообщение для сотрудника">
+               <font>
+                  <Font name="Gabriola" size="28.0" />
+               </font>
+            </TextArea>
+         </children>
+        </Pane>
+      <Button fx:id="MessagePageDelete" layoutX="311.0" layoutY="249.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="289.0" style="-fx-background-color: #ed9121;" text="Удалить уведомление" textAlignment="CENTER">
+         <font>
+            <Font name="Gabriola" size="28.0" />
+         </font>
+      </Button>
+      <ImageView fitHeight="226.0" fitWidth="195.0" layoutX="609.0" layoutY="174.0">
+         <image>
+            <Image url="@../icons/free-icon-edit-3246055.png" />
+         </image>
+      </ImageView>
+      <Button fx:id="MessagePageShow" layoutX="311.0" layoutY="183.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="289.0" style="-fx-background-color: #ed9121;" text="Просмотреть уведомления" textAlignment="CENTER">
+         <font>
+            <Font name="Gabriola" size="28.0" />
+         </font>
+      </Button>
+      <TextField fx:id="MessagePageSender" layoutX="311.0" layoutY="81.0" prefHeight="57.0" prefWidth="289.0" promptText="Отправитель" style="-fx-background-color: #ed9121; -fx-prompt-text-fill: black; -fx-text-fill: black;">
+         <font>
+            <Font name="Gabriola" size="28.0" />
+         </font>
+      </TextField>
+      <Button fx:id="MessagePageSend" layoutX="626.0" layoutY="81.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="160.0" style="-fx-background-color: #ed9121;" text="Отправить" textAlignment="CENTER">
+         <font>
+            <Font name="Gabriola" size="28.0" />
+         </font>
+      </Button>
+      <ImageView fx:id="MessagePageSaveToFile" fitHeight="48.0" fitWidth="48.0" layoutX="752.0">
+         <image>
+            <Image url="@../icons/free-icon-save-3318404.png" />
+         </image>
+      </ImageView>
+    </children>
+</AnchorPane>

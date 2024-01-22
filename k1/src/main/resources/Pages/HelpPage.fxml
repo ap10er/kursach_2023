@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="800.0" style="-fx-background-color: #000000;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Pages.HelpPage">
+    <children>
+        <Pane prefHeight="400.0" prefWidth="309.0" style="-fx-background-color: #ed9121;">
+         <children>
+              <Button fx:id="HelpPageBack" layoutX="13.0" layoutY="335.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="272.0" style="-fx-background-color: black;" text="Вернуться" textAlignment="CENTER" textFill="#ed9121">
+                  <font>
+                      <Font name="Gabriola" size="30.0" />
+                  </font>
+              </Button>
+              <Text fx:id="MainPageName" layoutX="12.0" layoutY="33.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Помощь" textAlignment="CENTER" wrappingWidth="280.0">
+                  <font>
+                      <Font name="Gabriola" size="48.0" />
+                  </font>
+              </Text>
+            <Button fx:id="HelpPageHowToReg" layoutX="7.0" layoutY="48.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="294.0" style="-fx-background-color: black;" text="Как зарегистрироваться" textAlignment="CENTER" textFill="#ed9121">
+               <font>
+                  <Font name="Gabriola" size="28.0" />
+               </font>
+            </Button>
+            <Button fx:id="HelpPageData" layoutX="7.0" layoutY="111.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="294.0" style="-fx-background-color: black;" text="Забыл(а) данные для входа" textAlignment="CENTER" textFill="#ed9121">
+               <font>
+                  <Font name="Gabriola" size="28.0" />
+               </font>
+            </Button>
+            <Button fx:id="HelpPageAccount" layoutX="7.0" layoutY="172.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="294.0" style="-fx-background-color: black;" text="Что дает аккаунт?" textAlignment="CENTER" textFill="#ed9121">
+               <font>
+                  <Font name="Gabriola" size="28.0" />
+               </font>
+            </Button>
+            <Button fx:id="HelpPageApp" layoutX="8.0" layoutY="235.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="294.0" style="-fx-background-color: black;" text="Для чего нужно приложение" textAlignment="CENTER" textFill="#ed9121">
+               <font>
+                  <Font name="Gabriola" size="28.0" />
+               </font>
+            </Button>
+         </children>
+        </Pane>
+        <Text fx:id="AdminUsername" fill="#ed9121" layoutX="559.0" layoutY="114.0" strokeType="OUTSIDE" strokeWidth="0.0" textAlignment="CENTER" wrappingWidth="239.0">
+            <font>
+                <Font name="Gabriola" size="48.0" />
+            </font>
+        </Text>
+      <Text fill="#ed9121" layoutX="317.0" layoutY="21.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Это окно помощи приложения Системы расчёта заработной платы. Если вы попали сюда случайно, то просто нажмите кнопку &quot;Вернуться&quot;. Слева представлены пункты, перейдя по которым вы получите все ответы на интересующие вас вопросы. Ответы распределены по пунктам для обеспечения лучшей навигации. Если ответа на интересующий вас вопрос здесь нету, вы можете оставить вопрос на рассмотрение.Всего хорошего!" wrappingWidth="483.33203125">
+         <font>
+            <Font name="Gabriola" size="27.0" />
+         </font>
+      </Text>
+    </children>
+</AnchorPane>

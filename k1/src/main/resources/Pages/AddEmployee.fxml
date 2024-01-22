@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="800.0" style="-fx-background-color: #000000;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="Pages.AddEmployee">
+    <children>
+        <Button fx:id="AddEmployeeBack" layoutX="315.0" layoutY="329.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="218.0" style="-fx-background-color: #ed9121;" text="Вернуться" textAlignment="CENTER">
+            <font>
+                <Font name="Gabriola" size="30.0" />
+            </font>
+        </Button>
+        <Text fill="#ed9121" layoutX="326.0" layoutY="66.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Меню добавления" textAlignment="CENTER" wrappingWidth="366.0">
+            <font>
+                <Font name="Gabriola" size="48.0" />
+            </font>
+        </Text>
+        <Pane prefHeight="400.0" prefWidth="300.0" style="-fx-background-color: #ed9121;">
+            <children>
+                <TextField fx:id="AddEmployeeLastName" layoutX="14.0" layoutY="20.0" prefHeight="47.0" prefWidth="275.0" promptText="Фамилия" style="-fx-background-color: black; -fx-prompt-text-fill: #ed9121; -fx-text-fill: #ed9121;">
+                    <font>
+                        <Font name="Gabriola" size="25.0" />
+                    </font>
+                </TextField>
+                <TextField fx:id="AddEmployeeFirstName" layoutX="14.0" layoutY="82.0" prefHeight="47.0" prefWidth="275.0" promptText="Имя" style="-fx-background-color: black; -fx-prompt-text-fill: #ed9121; -fx-text-fill: #ed9121;">
+                    <font>
+                        <Font name="Gabriola" size="25.0" />
+                    </font>
+                </TextField>
+                <TextField fx:id="AddEmployeeDepartmentName" layoutX="14.0" layoutY="211.0" prefHeight="47.0" prefWidth="275.0" promptText="Отдел" style="-fx-background-color: black; -fx-prompt-text-fill: #ed9121; -fx-text-fill: #ed9121;">
+                    <font>
+                        <Font name="Gabriola" size="25.0" />
+                    </font>
+                </TextField>
+                <TextField fx:id="AddEmployeeSalary" layoutX="14.0" layoutY="339.0" prefHeight="47.0" prefWidth="275.0" promptText="Начальная зарплата" style="-fx-background-color: black; -fx-prompt-text-fill: #ed9121; -fx-text-fill: #ed9121;">
+                    <font>
+                        <Font name="Gabriola" size="25.0" />
+                    </font>
+                </TextField>
+                <TextField fx:id="AddEmployeeMiddleName" layoutX="14.0" layoutY="146.0" prefHeight="47.0" prefWidth="275.0" promptText="Отчество" style="-fx-background-color: black; -fx-prompt-text-fill: #ed9121; -fx-text-fill: #ed9121;">
+                    <font>
+                        <Font name="Gabriola" size="25.0" />
+                    </font>
+                </TextField>
+                <TextField fx:id="AddEmployeeNumber" layoutX="13.0" layoutY="275.0" prefHeight="47.0" prefWidth="275.0" promptText="Номер телефона" style="-fx-background-color: black; -fx-prompt-text-fill: #ed9121; -fx-text-fill: #ed9121;">
+                    <font>
+                        <Font name="Gabriola" size="25.0" />
+                    </font>
+                </TextField>
+            <TextField fx:id="SalaryPageRatePerHour1" alignment="CENTER" editable="false" layoutX="207.0" layoutY="339.0" prefHeight="47.0" prefWidth="82.0" promptText="BYN" style="-fx-background-color: black; -fx-prompt-text-fill: #ed9121; -fx-text-fill: #ed9121;">
+               <font>
+                  <Font name="Gabriola" size="25.0" />
+               </font>
+            </TextField>
+            </children>
+        </Pane>
+        <ImageView fitHeight="81.0" fitWidth="82.0" layoutX="718.0">
+            <image>
+                <Image url="@../icons/free-icon-money-management-10045863.png" />
+            </image>
+        </ImageView>
+        <Text fill="#ed9121" layoutX="557.0" layoutY="135.0" strokeType="OUTSIDE" strokeWidth="0.0" text="работника" textAlignment="CENTER" wrappingWidth="218.0">
+            <font>
+                <Font name="Gabriola" size="48.0" />
+            </font>
+        </Text>
+        <Button fx:id="AddEmployeeAdd" layoutX="557.0" layoutY="329.0" mnemonicParsing="false" prefHeight="57.0" prefWidth="218.0" style="-fx-background-color: #ed9121;" text="Добавить" textAlignment="CENTER">
+            <font>
+                <Font name="Gabriola" size="30.0" />
+            </font>
+        </Button>
+        <TextField fx:id="AddEmployeePosition" layoutX="345.0" layoutY="213.0" prefHeight="47.0" prefWidth="158.0" promptText="Должность" style="-fx-background-color: #ed9121; -fx-prompt-text-fill: black; -fx-text-fill: black;">
+            <font>
+                <Font name="Gabriola" size="30.0" />
+            </font>
+        </TextField>
+        <DatePicker fx:id="AddEmployeeHireDate" layoutX="587.0" layoutY="213.0" prefHeight="57.0" prefWidth="158.0" style="-fx-background-color: black;">
+        </DatePicker>
+      <ImageView fitHeight="112.0" fitWidth="112.0" layoutX="368.0" layoutY="94.0">
+         <image>
+            <Image url="@../icons/free-icon-employee-7264310.png" />
+         </image>
+      </ImageView>
+
+
+    </children>
+</AnchorPane>
