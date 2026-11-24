@@ -86,11 +86,10 @@ public class CalculateSalaryAdminPage {
 
             // Создание подключения к базе данных
             try (Connection connection = Connector.connect()) {
-                // SQL-запрос для добавления новой записи в таблицу "Salaries"
                 String insertQuery = "INSERT INTO Salaries (PositionName, BaseRate, Bonus, WorkedHours, RatePerHour, Result) VALUES (?, ?, ?, ?, ?, ?)";
 
                 try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS)) {
-                    // Установка значений параметров в запросе
+
                     preparedStatement.setString(1, positionName);
                     preparedStatement.setDouble(2, baseSalary);
                     preparedStatement.setDouble(3, bonus);
@@ -98,10 +97,10 @@ public class CalculateSalaryAdminPage {
                     preparedStatement.setDouble(5, ratePerHour);
                     preparedStatement.setDouble(6, netSalary);
 
-                    // Выполнение запроса
+
                     preparedStatement.executeUpdate();
 
-                    // Получение сгенерированного ID записи
+
                     try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
                         if (generatedKeys.next()) {
                             int salaryID = generatedKeys.getInt(1);
@@ -131,7 +130,7 @@ public class CalculateSalaryAdminPage {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace(); // Обработка ошибок в реальном приложении может потребоваться иначе
+            e.printStackTrace();
             return false;
         }
     }
@@ -139,7 +138,8 @@ public class CalculateSalaryAdminPage {
 
     private void saveSalaryTableToFile() {
 
-        String filePath = "D:\\kursach\\k1\\src\\main\\resources\\files\\SalaryTable.txt";
+        String filePath = "D:\\apps\\IntelliJ IDEA 2026.2.4\\projects\\kursach_2023\\k1\\src\\main\\resources\\files\\SalaryTable.txt\"";
+
         try (Connection connection = Connector.connect(); /* инициализируйте ваше соединение с базой данных */) {
             String query = "SELECT * FROM Salaries";
             try (PreparedStatement preparedStatement = connection.prepareStatement(query);

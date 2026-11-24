@@ -2,8 +2,13 @@ package Pages;
 
 import java.math.BigDecimal;
 import java.net.URL;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ResourceBundle;
+
+import Database.Connector;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -38,7 +43,7 @@ public class ShowPenaltiesPage {
     }
 
     public void showAllTickets() {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SalarySystem", "root", "13979")) {
+        try (Connection connection = Connector.connect()) {
             String query = "SELECT * FROM Penalties";
             try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                 ResultSet resultSet = preparedStatement.executeQuery();
@@ -65,10 +70,9 @@ public class ShowPenaltiesPage {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert("Ошибка при работе с базой данных", Alert.AlertType.ERROR);
+            showAlert("Ошибка при работе с базой данных");
         }
     }
-
 
     public void setUsername(String username) {
         this.username = username;
@@ -77,7 +81,7 @@ public class ShowPenaltiesPage {
     }
 
     private void showTicketsForUser() {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SalarySystem", "root", "13979")) {
+        try (Connection connection = Connector.connect()) {
             String query = "SELECT * FROM Penalties WHERE Username = ?";
             try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                 preparedStatement.setString(1, username);
@@ -104,17 +108,16 @@ public class ShowPenaltiesPage {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            showAlert("Ошибка при работе с базой данных", Alert.AlertType.ERROR);
+            showAlert("Ошибка при работе с базой данных");
         }
     }
 
-    private void showAlert(String message, Alert.AlertType error) {
+    private void showAlert(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("");
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
     }
-
 
 }

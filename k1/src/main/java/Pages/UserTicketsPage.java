@@ -44,11 +44,10 @@ public class UserTicketsPage {
 
     public void setLoggedInUsername(String loggedInUsername) {
         this.loggedInUsername = loggedInUsername;
-        loadPenaltiesData(); // Загрузка данных при установке loggedInUsername
+        loadPenaltiesData();
     }
 
     private void loadPenaltiesData() {
-        // Загрузка данных из базы данных и отображение их в UserTicketsPageTextField
         try {
             Connection connection = Connector.connect();
             String query = "SELECT * FROM Penalties WHERE Username=?";

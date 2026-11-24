@@ -42,7 +42,7 @@ public class SearchEmployee {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace(); // Лучше создать объект Alert и уведомить пользователя
+            e.printStackTrace();
         } finally {
             Connector.close();
         }

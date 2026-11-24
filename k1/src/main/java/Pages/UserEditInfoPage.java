@@ -89,7 +89,6 @@ public class UserEditInfoPage {
             Connection connection = Connector.connect();
             connection.setAutoCommit(false); // Отключаем автоматическую фиксацию транзакций
 
-            // Обновляем Username в таблице Users
             String updateUserQuery = "UPDATE Users SET Username=? WHERE Username=?";
             try (PreparedStatement updateUserStatement = connection.prepareStatement(updateUserQuery)) {
                 updateUserStatement.setString(1, newLogin);
@@ -97,7 +96,6 @@ public class UserEditInfoPage {
                 updateUserStatement.executeUpdate();
             }
 
-            // Обновляем Username в таблице Employees
             String updateEmployeeQuery = "UPDATE Employees SET Username=? WHERE Username=?";
             try (PreparedStatement updateEmployeeStatement = connection.prepareStatement(updateEmployeeQuery)) {
                 updateEmployeeStatement.setString(1, newLogin);
@@ -105,7 +103,6 @@ public class UserEditInfoPage {
                 updateEmployeeStatement.executeUpdate();
             }
 
-            // Обновляем Username в таблице Penalties
             String updatePenaltiesQuery = "UPDATE Penalties SET Username=? WHERE Username=?";
             try (PreparedStatement updatePenaltiesStatement = connection.prepareStatement(updatePenaltiesQuery)) {
                 updatePenaltiesStatement.setString(1, newLogin);

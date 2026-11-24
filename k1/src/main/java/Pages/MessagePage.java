@@ -4,9 +4,13 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ResourceBundle;
 
+import Database.Connector;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
@@ -50,7 +54,7 @@ public class MessagePage {
         MessagePageSend.setOnAction(actionEvent -> sendMessage());
         MessagePageShow.setOnAction(actionEvent -> showMessage());
         MessagePageDelete.setOnAction(actionEvent -> deleteMessage());
-        MessagePageSaveToFile.setOnMouseClicked(mouseEvent ->saveMessagesToFile());
+        MessagePageSaveToFile.setOnMouseClicked(mouseEvent -> saveMessagesToFile());
     }
 
     private void deleteMessage() {
@@ -60,7 +64,7 @@ public class MessagePage {
         dialog.setContentText("Логин:");
 
         dialog.showAndWait().ifPresent(login -> {
-            try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SalarySystem", "root", "13979")) {
+            try (Connection connection = Connector.connect()) {
                 String query = "DELETE FROM messages WHERE Username = ?";
                 try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                     preparedStatement.setString(1, login);
@@ -79,10 +83,9 @@ public class MessagePage {
         });
     }
 
-
     private void sendMessage() {
         String login = MessagePageLogin.getText();
-        String sender = MessagePageSender.getText(); // Получаем значение отправителя
+        String sender = MessagePageSender.getText();
         String message = MessagePageTextField.getText();
 
         if (login.isEmpty() || sender.isEmpty() || message.isEmpty()) {
@@ -90,14 +93,13 @@ public class MessagePage {
             return;
         }
 
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SalarySystem", "root", "13979")) {
+        try (Connection connection = Connector.connect()) {
             String userQuery = "SELECT * FROM users WHERE Username = ?";
             try (PreparedStatement userStatement = connection.prepareStatement(userQuery)) {
                 userStatement.setString(1, login);
                 ResultSet userResultSet = userStatement.executeQuery();
 
                 if (userResultSet.next()) {
-                    // Добавление сообщения в таблицу messages
                     String insertQuery = "INSERT INTO messages (Sender, Username, Message) VALUES (?, ?, ?)";
                     try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
                         insertStatement.setString(1, sender);
@@ -121,7 +123,7 @@ public class MessagePage {
     }
 
     private void saveMessagesToFile() {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SalarySystem", "root", "13979")) {
+        try (Connection connection = Connector.connect()) {
             String query = "SELECT * FROM messages";
             try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                 ResultSet resultSet = preparedStatement.executeQuery();
@@ -138,10 +140,8 @@ public class MessagePage {
                             .append("Сообщение: ").append(userMessage).append("\n\n");
                 }
 
-                // Путь к файлу
-                String filePath = "D:\\kursach\\k1\\src\\main\\resources\\files\\MessagesTable.txt";
+                String filePath = "D:\\apps\\IntelliJ IDEA 2026.2.4\\projects\\kursach_2023\\k1\\src\\main\\resources\\files\\MessagesTable.txt\"";
 
-                // Сохранение данных в файл
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
                     writer.write(messages.toString());
                 } catch (IOException e) {
@@ -170,7 +170,7 @@ public class MessagePage {
         dialog.setContentText("Логин:");
 
         dialog.showAndWait().ifPresent(login -> {
-            try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SalarySystem", "root", "13979")) {
+            try (Connection connection = Connector.connect()) {
                 String query = "SELECT * FROM messages WHERE Username = ?";
                 try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                     preparedStatement.setString(1, login);
@@ -197,5 +197,3 @@ public class MessagePage {
     }
 
 }
-
-

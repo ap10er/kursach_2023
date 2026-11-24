@@ -91,8 +91,7 @@ public class MainUserPage {
         try {
             Parent root = loader.load();
             GraphPage graphPage = loader.getController();
-            graphPage.setLoggedInUsername(loggedInUsername); // Pass the username to GraphPage
-
+            graphPage.setLoggedInUsername(loggedInUsername);
             Stage stage = new Stage();
             stage.setScene(new Scene(root));
             stage.show();
@@ -101,7 +100,6 @@ public class MainUserPage {
             e.printStackTrace();
         }
     }
-
 
     private void notificationsMenu() {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("UserNotifications.fxml"));
@@ -119,7 +117,6 @@ public class MainUserPage {
             e.printStackTrace();
         }
     }
-
 
     private void showTickets() {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("UserTicketsPage.fxml"));
@@ -175,7 +172,6 @@ public class MainUserPage {
             Parent root = loader.load();
             UserStatsPage userStatsPage = loader.getController();
 
-            // Получение информации о текущем пользователе из базы данных
             String userInfo = getUserInfoFromDatabase(loggedInUsername);
 
             userStatsPage.setUserInfo(userInfo);
@@ -227,9 +223,6 @@ public class MainUserPage {
         return userInfo;
     }
 
-
-
-
     public void openLoginPage() {
         openNewStage();
     }
@@ -250,7 +243,6 @@ public class MainUserPage {
             handleException(e);
         }
 
-
     }
     private void showErrorDialog() {
         Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -259,5 +251,4 @@ public class MainUserPage {
         alert.setContentText("Ошибка!");
         alert.showAndWait();
     }
-
 }

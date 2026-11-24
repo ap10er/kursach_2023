@@ -166,8 +166,7 @@ public class UserNotifications {
 
     public void setLoggedInUsername(String username) {
         loggedInUsername = username;
-        // Дополнительные действия, если необходимо
-    }
+         }
 
 
 }

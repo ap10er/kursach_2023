@@ -73,7 +73,6 @@ public class RegPage {
         }
     }
 
-    //cчитывание данных
     private void registerUser() throws SQLException {
 
         String login = RegPageLogin.getText();
@@ -92,7 +91,6 @@ public class RegPage {
         try {
             Connection connection = Connector.connect();
 
-            // Проверка наличия пользователя в таблице Employees и получение DepartmentName
             String selectEmployeeQuery = "SELECT * FROM Employees WHERE Lastname = ? AND Firstname = ? AND Middlename = ?";
             try (PreparedStatement selectEmployeeStatement = connection.prepareStatement(selectEmployeeQuery)) {
                 selectEmployeeStatement.setString(1, lastname);
@@ -116,10 +114,8 @@ public class RegPage {
                             return;
                         }
 
-                        // Определение роли в зависимости от DepartmentName
-                        String role = determineRole(departmentName);  // Предполагаю, что вы проверяете только "it"
+                        String role = determineRole(departmentName);
 
-                        // Ваш код для создания пользователя в таблице users
                         String insertUserQuery = "INSERT INTO users (Username, Password, Role) VALUES (?, ?, ?)";
                         try (PreparedStatement insertUserStatement = connection.prepareStatement(insertUserQuery, Statement.RETURN_GENERATED_KEYS)) {
                             insertUserStatement.setString(1, login);
@@ -129,7 +125,6 @@ public class RegPage {
                             insertUserStatement.executeUpdate();
                         }
 
-                        // Обновление записи в таблице Employees с сохранением Username
                         String updateEmployeeQuery = "UPDATE Employees SET Username = ? WHERE Lastname = ? AND Firstname = ? AND Middlename = ?";
                         try (PreparedStatement updateEmployeeStatement = connection.prepareStatement(updateEmployeeQuery)) {
                             updateEmployeeStatement.setString(1, login);

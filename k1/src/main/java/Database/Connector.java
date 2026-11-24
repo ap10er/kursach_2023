@@ -1,5 +1,6 @@
 package Database;
 
+import Config.EnvConfig;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -7,37 +8,57 @@ import java.sql.SQLException;
 public class Connector {
 
     private static Connection connection = null;
+    private static boolean initialized = false;
 
-    public static Connection connect() throws SQLException {
+    public static String getUser() {
+        return EnvConfig.required("DEFAULT_USER");
+    }
+
+    public static String getPassword() {
+        return EnvConfig.required("DEFAULT_PASSWORD");
+    }
+
+    public static String getUrl() {
+        return EnvConfig.required("DEFAULT_URL");
+    }
+
+    public static String buildUrl(String databaseName) {
+        String url = getUrl();
+        int lastSlash = url.lastIndexOf('/');
+        if (lastSlash == -1) {
+            return url + "/" + databaseName;
+        }
+        return url.substring(0, lastSlash + 1) + databaseName;
+    }
+
+    public static synchronized Connection connect() throws SQLException {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            System.out.println("MySQL JDBC Driver Registered!");
+            Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
-            System.out.println("Where is your MySQL JDBC Driver?");
-            e.printStackTrace();
-            throw new SQLException("MySQL JDBC Driver not found.");
+            throw new SQLException("PostgreSQL JDBC Driver not found.", e);
         }
 
-        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/salarysystem?useUnicode=true&serverTimezone=UTC", "root", "13979");
+        if (!initialized) {
+            DatabaseInitializer.ensureDatabase();
+            initialized = true;
+        }
 
-        if (connection == null) {
-            throw new SQLException("Failed to establish connection to the database.");
-        } else {
-            System.out.println("Successfully connected!");
+        if (connection == null || connection.isClosed()) {
+            connection = DriverManager.getConnection(getUrl(), getUser(), getPassword());
         }
 
         return connection;
     }
 
-    public static void close() {
+    public static synchronized void close() {
         try {
-            if (connection != null) {
+            if (connection != null && !connection.isClosed()) {
                 connection.close();
-                System.out.println("Closing connection!\n\n");
             }
         } catch (SQLException e) {
-            System.out.println("Failed to close connection!\n\n");
             e.printStackTrace();
+        } finally {
+            connection = null;
         }
     }
 }

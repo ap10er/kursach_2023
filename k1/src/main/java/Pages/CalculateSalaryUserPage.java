@@ -36,18 +36,6 @@ public class CalculateSalaryUserPage {
     private TextField SalaryPageRatePerHour;
 
     @FXML
-    private TextField SalaryPageRatePerHour1;
-
-    @FXML
-    private TextField SalaryPageRatePerHour11;
-
-    @FXML
-    private TextField SalaryPageRatePerHour12;
-
-    @FXML
-    private TextField SalaryPageRatePerHour13;
-
-    @FXML
     private TextField SalaryPageTickets;
 
     @FXML
@@ -87,7 +75,6 @@ public class CalculateSalaryUserPage {
         }
     }
 
-
     private void showErrorDialog(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("");
@@ -95,5 +82,4 @@ public class CalculateSalaryUserPage {
         alert.setContentText(message);
         alert.showAndWait();
     }
-
 }

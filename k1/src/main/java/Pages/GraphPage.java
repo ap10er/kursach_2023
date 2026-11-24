@@ -86,6 +86,6 @@ public class GraphPage {
     }
 
     private void showErrorDialog() {
-        // Implement your error dialog logic here
+
     }
 }

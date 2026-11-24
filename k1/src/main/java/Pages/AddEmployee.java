@@ -81,9 +81,20 @@ public class AddEmployee {
         String middleName = AddEmployeeMiddleName.getText();
         String number = AddEmployeeNumber.getText();
         String position = AddEmployeePosition.getText();
-        String salary = AddEmployeeSalary.getText();
+        String salaryText = AddEmployeeSalary.getText();
         String hireDate = AddEmployeeHireDate.getValue().toString();
         String departmentName = AddEmployeeDepartmentName.getText();
+
+        // PostgreSQL не преобразует varchar в double precision автоматически.
+        double salary;
+        java.sql.Date sqlHireDate;
+        try {
+            salary = Double.parseDouble(salaryText.replace(',', '.'));
+            sqlHireDate = java.sql.Date.valueOf(hireDate);
+        } catch (IllegalArgumentException e) {
+            showErrorDialog("Некорректный формат зарплаты или даты найма.");
+            return;
+        }
 
         try {
             Connection connection = Connector.connect();
@@ -95,8 +106,8 @@ public class AddEmployee {
                 insertStatement.setString(3, middleName);
                 insertStatement.setString(4, number);
                 insertStatement.setString(5, position);
-                insertStatement.setString(6, salary);
-                insertStatement.setString(7, hireDate);
+                insertStatement.setDouble(6, salary);
+                insertStatement.setDate(7, sqlHireDate);
                 insertStatement.setString(8, departmentName);
 
                 insertStatement.executeUpdate();
