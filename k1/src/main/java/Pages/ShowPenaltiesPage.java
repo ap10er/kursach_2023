@@ -74,7 +74,6 @@ public class ShowPenaltiesPage {
         }
     }
 
-
     public void setUsername(String username) {
         this.username = username;
         ShowTicketsUsername.setText("пользователя " + username);

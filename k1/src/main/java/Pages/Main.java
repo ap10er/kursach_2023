@@ -4,7 +4,7 @@ import client.ClientApp;
 
 public class Main {
     public static void main(String[] args) {
-        int numberOfClients = 3; // Установите желаемое количество клиентов
+        int numberOfClients = 3;
         launchClients(numberOfClients);
     }
 

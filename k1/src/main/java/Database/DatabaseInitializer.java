@@ -1,5 +1,6 @@
 package Database;
 
+import Config.EnvConfig;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -11,18 +12,9 @@ public final class DatabaseInitializer {
 
     private static final String DB_NAME = "salarysystem";
 
-    // Учётные данные администратора приложения (не путать с пользователем PostgreSQL)
-    private static final String ADMIN_USERNAME = "admin";
-    private static final String ADMIN_PASSWORD = "admin";
-    private static final String ADMIN_ROLE = "Admin"; // LoginPage открывает MainAdminPage для этой роли
-
     private DatabaseInitializer() {
     }
 
-    /**
-     * Гарантирует, что база данных и все таблицы существуют.
-     * Безопасно вызывать многократно.
-     */
     public static void ensureDatabase() throws SQLException {
         if (!databaseExists()) {
             createDatabase();
@@ -31,9 +23,7 @@ public final class DatabaseInitializer {
         createAdminUser();
     }
 
-    /**
-     * Проверяет наличие базы данных, подключаясь к служебной базе {@code postgres}.
-     */
+
     private static boolean databaseExists() throws SQLException {
         String adminUrl = Connector.buildUrl("salarysystem");
         try (Connection adminConnection = DriverManager.getConnection(
@@ -58,15 +48,11 @@ public final class DatabaseInitializer {
         }
     }
 
-    /**
-     * Создаёт все таблицы приложения, если они ещё не существуют.
-     */
     private static void createTables() throws SQLException {
         try (Connection connection = DriverManager.getConnection(
                 Connector.buildUrl(DB_NAME), Connector.getUser(), Connector.getPassword());
              Statement statement = connection.createStatement()) {
 
-            // Пользователи системы (логин, пароль, роль)
             statement.executeUpdate("""
                     CREATE TABLE IF NOT EXISTS users (
                         userid   SERIAL PRIMARY KEY,
@@ -76,7 +62,6 @@ public final class DatabaseInitializer {
                     )
                     """);
 
-            // Сотрудники
             statement.executeUpdate("""
                     CREATE TABLE IF NOT EXISTS employees (
                         employeeid     SERIAL PRIMARY KEY,
@@ -139,28 +124,24 @@ public final class DatabaseInitializer {
         }
     }
 
-    /**
-     * Создаёт (или обновляет) пользователя приложения admin/admin с ролью Admin.
-     * Именно эту роль ожидает {@code LoginPage}, чтобы открыть меню администратора.
-     */
     private static void createAdminUser() throws SQLException {
+        String adminUsername = EnvConfig.required("ADMIN_USERNAME");
+        String adminPassword = EnvConfig.required("ADMIN_PASSWORD");
+        String adminRole = EnvConfig.required("ADMIN_ROLE");
         try (Connection connection = DriverManager.getConnection(
                 Connector.buildUrl(DB_NAME), Connector.getUser(), Connector.getPassword());
              Statement statement = connection.createStatement()) {
 
             ResultSet check = statement.executeQuery(
-                    "SELECT 1 FROM users WHERE username = '" + ADMIN_USERNAME + "'");
+                    "SELECT 1 FROM users WHERE username = '" + adminUsername + "'");
             if (!check.next()) {
                 statement.executeUpdate(
                         "INSERT INTO users (username, password, role) VALUES ('"
-                                + ADMIN_USERNAME + "', '" + ADMIN_PASSWORD + "', '" + ADMIN_ROLE + "')");
-                System.out.println("Admin user created: " + ADMIN_USERNAME + "/" + ADMIN_PASSWORD
-                        + " (role=" + ADMIN_ROLE + ")");
+                                + adminUsername + "', '" + adminPassword + "', '" + adminRole + "')");
             } else {
                 statement.executeUpdate(
-                        "UPDATE users SET password = '" + ADMIN_PASSWORD
-                                + "', role = '" + ADMIN_ROLE + "' WHERE username = '" + ADMIN_USERNAME + "'");
-                System.out.println("Admin user already exists — password/role updated.");
+                        "UPDATE users SET password = '" + adminPassword
+                                + "', role = '" + adminRole + "' WHERE username = '" + adminUsername + "'");
             }
             check.close();
         }

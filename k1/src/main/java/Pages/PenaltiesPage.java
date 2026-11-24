@@ -85,10 +85,8 @@ public class PenaltiesPage {
                             .append("Описание: ").append(description).append("\n\n");
                 }
 
-                // Путь к файлу
                 String filePath = "D:\\apps\\IntelliJ IDEA 2026.2.4\\projects\\kursach_2023\\k1\\src\\main\\resources\\files\\PenaltiesTable.txt\"";
 
-                // Сохранение данных в файл
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
                     writer.write(penalties.toString());
                 } catch (IOException e) {
@@ -130,7 +128,6 @@ public class PenaltiesPage {
             ShowPenaltiesPage showPenaltiesPageController = loader.getController();
             showPenaltiesPageController.showAllTickets();
 
-            // Открываем новое окно ShowTicketsPage
             Stage stage = new Stage();
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.setTitle("Штрафы всех пользователей");

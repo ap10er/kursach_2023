@@ -17,12 +17,6 @@ import javafx.scene.image.ImageView;
 public class Employees {
 
     @FXML
-    private ResourceBundle resources;
-
-    @FXML
-    private URL location;
-
-    @FXML
     private Button EmployeesBack;
 
     @FXML
@@ -110,10 +104,8 @@ public class Employees {
                         .append("Отдел: ").append(department).append("\n\n");
             }
 
-            // Путь к файлу
             String filePath = "D:\\apps\\IntelliJ IDEA 2026.2.4\\projects\\kursach_2023\\k1\\src\\main\\resources\\files\\EmployeesTable.txt\"";
 
-            // Сохранение данных в файл
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
                 writer.write(stringBuilder.toString());
                 System.out.println("Данные успешно сохранены в файл: " + filePath);

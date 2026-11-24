@@ -8,4 +8,6 @@ module com.main.k {
     opens Pages to javafx.fxml;
     exports client;
     exports Pages;
+    exports Config;
+    exports Database;
 }

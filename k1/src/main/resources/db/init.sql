@@ -67,8 +67,6 @@ CREATE TABLE IF NOT EXISTS messages (
     message   TEXT
 );
 
--- Начальные данные (администратор по умолчанию, логин admin / пароль admin)
--- Роль именно 'Admin' — её проверяет LoginPage для открытия меню админа.
-INSERT INTO users (username, password, role)
-SELECT 'admin', 'admin', 'Admin'
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin');
+-- Пользователь администратора создаётся/обновляется автоматически
+-- классом DatabaseInitializer на основе ADMIN_USERNAME / ADMIN_PASSWORD / ADMIN_ROLE
+-- из файла .env. Скрипт намеренно не содержит учётных данных.

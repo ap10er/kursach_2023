@@ -54,7 +54,7 @@ public class MessagePage {
         MessagePageSend.setOnAction(actionEvent -> sendMessage());
         MessagePageShow.setOnAction(actionEvent -> showMessage());
         MessagePageDelete.setOnAction(actionEvent -> deleteMessage());
-        MessagePageSaveToFile.setOnMouseClicked(mouseEvent ->saveMessagesToFile());
+        MessagePageSaveToFile.setOnMouseClicked(mouseEvent -> saveMessagesToFile());
     }
 
     private void deleteMessage() {
@@ -82,7 +82,6 @@ public class MessagePage {
             }
         });
     }
-
 
     private void sendMessage() {
         String login = MessagePageLogin.getText();

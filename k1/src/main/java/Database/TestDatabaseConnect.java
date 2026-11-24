@@ -20,9 +20,8 @@ public class TestDatabaseConnect {
             System.out.println("Connection Failed!");
             e.printStackTrace();
             System.out.println();
-            System.out.println("Если ошибка связана с аутентификацией, передайте правильный пароль:");
-            System.out.println("  -DDB_PASSWORD=ваш_пароль  (в VM options конфигурации запуска)");
-            System.out.println("или задайте переменную окружения DB_PASSWORD.");
+            System.out.println("Если ошибка связана с аутентификацией, проверьте значения");
+            System.out.println("DEFAULT_URL / DEFAULT_USER / DEFAULT_PASSWORD в файле .env.");
         } finally {
             Connector.close();
         }
