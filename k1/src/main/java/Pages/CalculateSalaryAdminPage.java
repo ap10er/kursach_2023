@@ -139,7 +139,8 @@ public class CalculateSalaryAdminPage {
 
     private void saveSalaryTableToFile() {
 
-        String filePath = "D:\\kursach\\k1\\src\\main\\resources\\files\\SalaryTable.txt";
+        String filePath = "D:\\apps\\IntelliJ IDEA 2026.2.4\\projects\\kursach_2023\\k1\\src\\main\\resources\\files\\SalaryTable.txt\"";
+
         try (Connection connection = Connector.connect(); /* инициализируйте ваше соединение с базой данных */) {
             String query = "SELECT * FROM Salaries";
             try (PreparedStatement preparedStatement = connection.prepareStatement(query);

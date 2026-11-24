@@ -32,7 +32,4 @@ public class ClientApp extends Application {
         }
     }
 
-    public void launchClient() {
-        launch();
-    }
 }

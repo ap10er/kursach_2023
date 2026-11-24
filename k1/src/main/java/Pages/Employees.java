@@ -111,7 +111,7 @@ public class Employees {
             }
 
             // Путь к файлу
-            String filePath = "D:\\kursach\\k1\\src\\main\\resources\\files\\EmployeesTable.txt";
+            String filePath = "D:\\apps\\IntelliJ IDEA 2026.2.4\\projects\\kursach_2023\\k1\\src\\main\\resources\\files\\EmployeesTable.txt\"";
 
             // Сохранение данных в файл
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {

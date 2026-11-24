@@ -8,6 +8,8 @@ import java.net.URL;
 import java.sql.*;
 import java.util.ResourceBundle;
 
+import Database.Connector;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -64,7 +66,7 @@ public class PenaltiesPage {
     }
 
     private void saveTicketsToFile() {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SalarySystem", "root", "13979")) {
+        try (Connection connection = Connector.connect()) {
             String query = "SELECT * FROM Penalties";
             try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                 ResultSet resultSet = preparedStatement.executeQuery();
@@ -84,7 +86,7 @@ public class PenaltiesPage {
                 }
 
                 // Путь к файлу
-                String filePath = "D:\\kursach\\k1\\src\\main\\resources\\files\\PenaltiesTable.txt";
+                String filePath = "D:\\apps\\IntelliJ IDEA 2026.2.4\\projects\\kursach_2023\\k1\\src\\main\\resources\\files\\PenaltiesTable.txt\"";
 
                 // Сохранение данных в файл
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
@@ -102,7 +104,7 @@ public class PenaltiesPage {
     }
 
     private void showAllTickets() {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SalarySystem", "root", "13979")) {
+        try (Connection connection = Connector.connect()) {
             String query = "SELECT * FROM Penalties";
             try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                 ResultSet resultSet = preparedStatement.executeQuery();
@@ -183,7 +185,7 @@ public class PenaltiesPage {
 
     private boolean hasPenaltiesForUser(String login) {
         // Проверяем, есть ли штрафы для пользователя с указанным логином в базе данных
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SalarySystem", "root", "13979")) {
+        try (Connection connection = Connector.connect()) {
             String query = "SELECT * FROM Penalties WHERE Username = ?";
             try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                 preparedStatement.setString(1, login);
@@ -205,7 +207,7 @@ public class PenaltiesPage {
         dialog.setContentText("Логин:");
 
         dialog.showAndWait().ifPresent(login -> {
-            try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SalarySystem", "root", "13979")) {
+            try (Connection connection = Connector.connect()) {
                 String query = "SELECT * FROM Penalties WHERE Username = ?";
                 try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                     preparedStatement.setString(1, login);
@@ -239,14 +241,14 @@ public class PenaltiesPage {
             return;
         }
 
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SalarySystem", "root", "13979")) {
+        try (Connection connection = Connector.connect()) {
             String userQuery = "SELECT * FROM Users WHERE Username = ?";
             try (PreparedStatement userStatement = connection.prepareStatement(userQuery)) {
                 userStatement.setString(1, login);
                 ResultSet userResultSet = userStatement.executeQuery();
 
                 if (userResultSet.next()) {
-                    String insertQuery = "INSERT INTO Penalties (Username, FineAmount, PenaltyDate, Description) VALUES (?, ?, CURDATE(), ?)";
+                    String insertQuery = "INSERT INTO Penalties (Username, FineAmount, PenaltyDate, Description) VALUES (?, ?, CURRENT_DATE, ?)";
                     try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
                         insertStatement.setString(1, login);
                         insertStatement.setBigDecimal(2, new BigDecimal(ticketAmount));
