@@ -1,11 +1,11 @@
 package Pages;
 
+import java.io.IOException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.ResourceBundle;
-import Database.Connector;
+import client.ClientContext;
+import protocol.Request;
+import protocol.Response;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -64,8 +64,8 @@ public class AddEmployee {
         AddEmployeeAdd.setOnAction(actionEvent -> {
             try {
                 addEmployee();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
+            } catch (RuntimeException e) {
+                throw e;
             }
         });
     }
@@ -75,7 +75,7 @@ public class AddEmployee {
         stage.close();
     }
 
-    private void addEmployee() throws SQLException {
+    private void addEmployee() {
         String lastName = AddEmployeeLastName.getText();
         String firstName = AddEmployeeFirstName.getText();
         String middleName = AddEmployeeMiddleName.getText();
@@ -97,35 +97,25 @@ public class AddEmployee {
         }
 
         try {
-            Connection connection = Connector.connect();
-            String insertQuery = "INSERT INTO Employees (Lastname, Firstname, Middlename, Number, Position, Salary, HireDate, DepartmentName) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-            try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
-                insertStatement.setString(1, lastName);
-                insertStatement.setString(2, firstName);
-                insertStatement.setString(3, middleName);
-                insertStatement.setString(4, number);
-                insertStatement.setString(5, position);
-                insertStatement.setDouble(6, salary);
-                insertStatement.setDate(7, sqlHireDate);
-                insertStatement.setString(8, departmentName);
-
-                insertStatement.executeUpdate();
+            Request req = Request.of("ADD_EMPLOYEE")
+                    .put("lastName", lastName).put("firstName", firstName)
+                    .put("middleName", middleName).put("number", number)
+                    .put("position", position).put("salary", String.valueOf(salary))
+                    .put("hireDate", sqlHireDate.toString()).put("department", departmentName);
+            Response resp = ClientContext.client().send(req);
+            if (resp.isOk()) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("");
+                alert.setHeaderText(null);
+                alert.setContentText(resp.getData());
+                alert.showAndWait();
+                clearFields();
+            } else {
+                showErrorDialog(resp.getError());
             }
-
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("");
-            alert.setHeaderText(null);
-            alert.setContentText("Сотрудник успешно добавлен!");
-            alert.showAndWait();
-
-            clearFields();
-
-        } catch (SQLException e) {
+        } catch (IOException e) {
             e.printStackTrace();
-            showErrorDialog("Ошибка при работе с базой данных.");
-        } finally {
-            Connector.close();
+            showErrorDialog("Ошибка связи с сервером.");
         }
     }
 

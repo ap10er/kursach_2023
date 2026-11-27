@@ -5,270 +5,141 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.sql.*;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.ResourceBundle;
 
-import Database.Connector;
-
+import client.ClientContext;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.ImageView;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
+import protocol.JsonCodec;
+import protocol.Request;
+import protocol.Response;
 
 public class PenaltiesPage {
 
-    @FXML
-    private ResourceBundle resources;
+    @FXML private ResourceBundle resources;
+    @FXML private URL location;
+    @FXML private Button TicketPageAddTicket;
+    @FXML private Button TicketPageBack;
+    @FXML private TextField TicketPageDescription;
+    @FXML private Button TicketPageRemoveTicket;
+    @FXML private Button TicketPageShowAll;
+    @FXML private Button TicketPageShowTickets;
+    @FXML private TextField TicketsPageLogin;
+    @FXML private TextField TicketsPageTicket;
+    @FXML private ImageView TicketsPageSaveToFile;
 
-    @FXML
-    private URL location;
-
-    @FXML
-    private Button TicketPageAddTicket;
-
-    @FXML
-    private Button TicketPageBack;
-
-    @FXML
-    private TextField TicketPageDescription;
-
-    @FXML
-    private Button TicketPageRemoveTicket;
-
-    @FXML
-    private Button TicketPageShowAll;
-
-    @FXML
-    private Button TicketPageShowTickets;
-
-    @FXML
-    private TextField TicketsPageLogin;
-
-    @FXML
-    private TextField TicketsPageTicket;
-
-    @FXML
-    private ImageView TicketsPageSaveToFile;
-
-    @FXML
-    void initialize() {
-        TicketPageBack.setOnAction(actionEvent -> TicketPageBack.getScene().getWindow().hide());
-        TicketPageAddTicket.setOnAction(actionEvent -> addTicket());
-        TicketPageRemoveTicket.setOnAction(actionEvent -> removeTicket());
-        TicketPageShowTickets.setOnAction(actionEvent -> showTickets());
-        TicketPageShowAll.setOnAction(actionEvent -> showAllTickets());
-        TicketsPageSaveToFile.setOnMouseClicked(mouseEvent -> saveTicketsToFile());
-
+    @FXML void initialize() {
+        TicketPageBack.setOnAction(e -> TicketPageBack.getScene().getWindow().hide());
+        TicketPageAddTicket.setOnAction(e -> addTicket());
+        TicketPageRemoveTicket.setOnAction(e -> removeTicket());
+        TicketPageShowTickets.setOnAction(e -> showTickets());
+        TicketPageShowAll.setOnAction(e -> openShowTicketsPageForAll());
+        TicketsPageSaveToFile.setOnMouseClicked(e -> saveTicketsToFile());
     }
 
     private void saveTicketsToFile() {
-        try (Connection connection = Connector.connect()) {
-            String query = "SELECT * FROM Penalties";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                ResultSet resultSet = preparedStatement.executeQuery();
-
-                StringBuilder penalties = new StringBuilder();
-
-                while (resultSet.next()) {
-                    String username = resultSet.getString("Username");
-                    BigDecimal fineAmount = resultSet.getBigDecimal("FineAmount");
-                    String penaltyDate = resultSet.getString("PenaltyDate");
-                    String description = resultSet.getString("Description");
-
-                    penalties.append("Логин пользователя: ").append(username).append("\n")
-                            .append("Сумма штрафа: ").append(fineAmount).append(" BYN\n")
-                            .append("Дата штрафа: ").append(penaltyDate).append("\n")
-                            .append("Описание: ").append(description).append("\n\n");
-                }
-
-                String filePath = "D:\\apps\\IntelliJ IDEA 2026.2.4\\projects\\kursach_2023\\k1\\src\\main\\resources\\files\\PenaltiesTable.txt\"";
-
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-                    writer.write(penalties.toString());
-                } catch (IOException e) {
-                    System.out.println("Ошибка при сохранении данных в файл.");
-                    e.printStackTrace();
-                    showAlert("Ошибка при сохранении данных в файл.", Alert.AlertType.ERROR);
-                }
+        try {
+            Response resp = ClientContext.client().send("GET_ALL_PENALTIES");
+            if (!resp.isOk()) { showAlert(resp.getError(), Alert.AlertType.ERROR); return; }
+            Path path = Path.of("src/main/resources/files/PenaltiesTable.txt");
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(path.toFile()))) {
+                for (String row : JsonCodec.parseDataList(resp.getData())) writer.write(row);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Ошибка при работе с базой данных", Alert.AlertType.ERROR);
-        }
-    }
-
-    private void showAllTickets() {
-        try (Connection connection = Connector.connect()) {
-            String query = "SELECT * FROM Penalties";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                ResultSet resultSet = preparedStatement.executeQuery();
-
-                // Проверяем, есть ли записи в таблице
-                if (resultSet.next()) {
-                    openShowTicketsPageForAll();
-                } else {
-                    showAlert("Нет данных для отображения", Alert.AlertType.ERROR);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Ошибка при работе с базой данных", Alert.AlertType.ERROR);
+        } catch (IOException e) {
+            showAlert("Ошибка сохранения: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
     private void openShowTicketsPageForAll() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("ShowPenaltiesPage.fxml"));
-            Parent root = loader.load();
-
-            ShowPenaltiesPage showPenaltiesPageController = loader.getController();
-            showPenaltiesPageController.showAllTickets();
-
-            Stage stage = new Stage();
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setTitle("Штрафы всех пользователей");
-            stage.setScene(new Scene(root));
-            stage.showAndWait();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Ошибка при открытии окна ShowTicketsPage", Alert.AlertType.ERROR);
-        }
+        openShowTicketsPage("");
     }
-
 
     private void showTickets() {
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Просмотр штрафов");
-        dialog.setHeaderText("Введите логин пользователя:");
-        dialog.setContentText("Логин:");
-
-        dialog.showAndWait().ifPresent(login -> {
-            // Проверяем, есть ли штрафы для введенного логина
-            if (hasPenaltiesForUser(login)) {
-                openShowTicketsPage(login);
-            } else {
-                showAlert("Штрафов для пользователя с таким логином не найдено", Alert.AlertType.ERROR);
-            }
-        });
+        dialog.setTitle("Поиск штрафов");
+        dialog.setHeaderText("Введите логин сотрудника");
+        dialog.showAndWait().ifPresent(this::openShowTicketsPage);
     }
 
     private void openShowTicketsPage(String login) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("ShowPenaltiesPage.fxml"));
             Parent root = loader.load();
-
-            ShowPenaltiesPage showPenaltiesPageController = loader.getController();
-
-            // Устанавливаем логин пользователя для отображения
-            showPenaltiesPageController.setUsername(login);
-
-            // Открываем новое окно ShowTicketsPage
+            ShowPenaltiesPage page = loader.getController();
+            if (login == null || login.isBlank()) page.showAllTickets();
+            else page.setUsername(login);
             Stage stage = new Stage();
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setTitle("Штрафы пользователя");
             stage.setScene(new Scene(root));
-            stage.showAndWait();
-
+            stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Ошибка при открытии окна ShowTicketsPage", Alert.AlertType.ERROR);
+            showAlert("Ошибка открытия страницы: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
     private boolean hasPenaltiesForUser(String login) {
-        // Проверяем, есть ли штрафы для пользователя с указанным логином в базе данных
-        try (Connection connection = Connector.connect()) {
-            String query = "SELECT * FROM Penalties WHERE Username = ?";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                preparedStatement.setString(1, login);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                return resultSet.next();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Ошибка при работе с базой данных", Alert.AlertType.ERROR);
+        try {
+            Response resp = ClientContext.client().send(
+                    Request.of("PENALTY_EXISTS").put("username", login));
+            return resp.isOk() && Boolean.parseBoolean(resp.getData());
+        } catch (IOException e) {
             return false;
         }
     }
 
-
     private void removeTicket() {
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Удалить штраф");
-        dialog.setHeaderText("Введите логин пользователя:");
+        dialog.setTitle("Удаление штрафа");
         dialog.setContentText("Логин:");
-
         dialog.showAndWait().ifPresent(login -> {
-            try (Connection connection = Connector.connect()) {
-                String query = "SELECT * FROM Penalties WHERE Username = ?";
-                try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                    preparedStatement.setString(1, login);
-                    ResultSet resultSet = preparedStatement.executeQuery();
-
-                    if (resultSet.next()) {
-                        String deleteQuery = "DELETE FROM Penalties WHERE Username = ?";
-                        try (PreparedStatement deleteStatement = connection.prepareStatement(deleteQuery)) {
-                            deleteStatement.setString(1, login);
-                            deleteStatement.executeUpdate();
-                            showAlert("Штраф успешно удален", Alert.AlertType.INFORMATION);
-                        }
-                    } else {
-                        showAlert("Штрафов для пользователя с таким логином не найдено", Alert.AlertType.ERROR);
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                showAlert("Ошибка при работе с базой данных", Alert.AlertType.ERROR);
+            try {
+                Response resp = ClientContext.client().send(
+                        Request.of("DELETE_PENALTIES").put("username", login));
+                showAlert(resp.isOk() ? "Штраф успешно удален" : resp.getError(),
+                        resp.isOk() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+            } catch (IOException e) {
+                showAlert("Ошибка связи с сервером.", Alert.AlertType.ERROR);
             }
         });
     }
 
     private void addTicket() {
         String login = TicketsPageLogin.getText();
-        String ticketAmount = TicketsPageTicket.getText();
+        String amount = TicketsPageTicket.getText();
         String description = TicketPageDescription.getText();
-
-        if (login.isEmpty() || ticketAmount.isEmpty() || description.isEmpty()) {
-            showAlert("Заполните все поля", Alert.AlertType.ERROR);
+        try {
+            new BigDecimal(amount.replace(',', '.'));
+        } catch (NumberFormatException e) {
+            showAlert("Некорректная сумма штрафа", Alert.AlertType.ERROR);
             return;
         }
-
-        try (Connection connection = Connector.connect()) {
-            String userQuery = "SELECT * FROM Users WHERE Username = ?";
-            try (PreparedStatement userStatement = connection.prepareStatement(userQuery)) {
-                userStatement.setString(1, login);
-                ResultSet userResultSet = userStatement.executeQuery();
-
-                if (userResultSet.next()) {
-                    String insertQuery = "INSERT INTO Penalties (Username, FineAmount, PenaltyDate, Description) VALUES (?, ?, CURRENT_DATE, ?)";
-                    try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
-                        insertStatement.setString(1, login);
-                        insertStatement.setBigDecimal(2, new BigDecimal(ticketAmount));
-                        insertStatement.setString(3, description);
-                        insertStatement.executeUpdate();
-                        showAlert("Штраф успешно добавлен", Alert.AlertType.INFORMATION);
-                        TicketsPageLogin.clear();
-                        TicketsPageTicket.clear();
-                        TicketPageDescription.clear();
-                    }
-                } else {
-                    showAlert("Пользователя с таким логином не существует", Alert.AlertType.ERROR);
-                }
+        try {
+            Response resp = ClientContext.client().send(Request.of("ADD_PENALTY")
+                    .put("username", login).put("amount", amount.replace(',', '.'))
+                    .put("description", description));
+            showAlert(resp.isOk() ? "Штраф успешно добавлен" : resp.getError(),
+                    resp.isOk() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+            if (resp.isOk()) {
+                TicketsPageLogin.clear();
+                TicketsPageTicket.clear();
+                TicketPageDescription.clear();
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Ошибка при работе с базой данных", Alert.AlertType.ERROR);
+        } catch (IOException e) {
+            showAlert("Ошибка связи с сервером.", Alert.AlertType.ERROR);
         }
     }
 
     private void showAlert(String message, Alert.AlertType alertType) {
-        Alert alert = new Alert(alertType, message, ButtonType.OK);
-        alert.showAndWait();
+        new Alert(alertType, message, ButtonType.OK).showAndWait();
     }
-
 }

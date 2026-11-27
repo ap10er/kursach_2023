@@ -2,10 +2,11 @@ package Pages;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.*;
 import java.util.ResourceBundle;
 
-import Database.Connector;
+import client.ClientContext;
+import protocol.Request;
+import protocol.Response;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -62,24 +63,14 @@ public class LoginPage {
     }
     private String getRoleFromDatabase(String username, String password) {
         try {
-            Connection connection = Connector.connect();
-
-            String query = "SELECT role FROM users WHERE Username=? AND Password=?";
-            try (PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.setString(1, username);
-                statement.setString(2, password);
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    if (resultSet.next()) {
-                        return resultSet.getString("role");
-                    }
-                }
-            }
-        } catch (SQLException e) {
+            Request req = Request.of("LOGIN").put("username", username).put("password", password);
+            Response resp = ClientContext.client().send(req);
+            if (resp.isOk()) return resp.getData();
+            System.out.println("[CLIENT] LOGIN error: " + resp.getError());
+        } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            Connector.close();
         }
-        return null; // В случае ошибки или если роль не найдена
+        return null;
     }
 
     private void handleLoginButtonAction() {

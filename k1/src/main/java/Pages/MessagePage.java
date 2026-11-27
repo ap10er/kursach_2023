@@ -4,81 +4,55 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.ResourceBundle;
 
-import Database.Connector;
+import client.ClientContext;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.ImageView;
+import protocol.JsonCodec;
+import protocol.Request;
+import protocol.Response;
 
 public class MessagePage {
 
-    @FXML
-    private ResourceBundle resources;
+    @FXML private ResourceBundle resources;
+    @FXML private URL location;
+    @FXML private Button MessagePageBack;
+    @FXML private Button MessagePageDelete;
+    @FXML private Button MessagePageShow;
+    @FXML private TextField MessagePageLogin;
+    @FXML private Button MessagePageSend;
+    @FXML private TextArea MessagePageTextField;
+    @FXML private TextField MessagePageSender;
+    @FXML private ImageView MessagePageSaveToFile;
 
-    @FXML
-    private URL location;
-
-    @FXML
-    private Button MessagePageBack;
-
-    @FXML
-    private Button MessagePageDelete;
-
-    @FXML
-    private Button MessagePageShow;
-
-    @FXML
-    private TextField MessagePageLogin;
-
-    @FXML
-    private Button MessagePageSend;
-
-    @FXML
-    private TextArea MessagePageTextField;
-
-    @FXML
-    private TextField MessagePageSender;
-
-    @FXML
-    private ImageView MessagePageSaveToFile;
-
-    @FXML
-    void initialize() {
-
-        MessagePageBack.setOnAction(actionEvent -> MessagePageBack.getScene().getWindow().hide());
-        MessagePageSend.setOnAction(actionEvent -> sendMessage());
-        MessagePageShow.setOnAction(actionEvent -> showMessage());
-        MessagePageDelete.setOnAction(actionEvent -> deleteMessage());
-        MessagePageSaveToFile.setOnMouseClicked(mouseEvent -> saveMessagesToFile());
+    @FXML void initialize() {
+        MessagePageBack.setOnAction(e -> MessagePageBack.getScene().getWindow().hide());
+        MessagePageSend.setOnAction(e -> sendMessage());
+        MessagePageDelete.setOnAction(e -> deleteMessage());
+        MessagePageShow.setOnAction(e -> showMessage());
+        MessagePageSaveToFile.setOnMouseClicked(e -> saveMessagesToFile());
     }
 
     private void deleteMessage() {
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Удалить сообщение");
-        dialog.setHeaderText("Введите логин пользователя:");
+        dialog.setTitle("Удаление сообщений");
         dialog.setContentText("Логин:");
-
         dialog.showAndWait().ifPresent(login -> {
-            try (Connection connection = Connector.connect()) {
-                String query = "DELETE FROM messages WHERE Username = ?";
-                try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                    preparedStatement.setString(1, login);
-                    int rowsAffected = preparedStatement.executeUpdate();
-
-                    if (rowsAffected > 0) {
-                        showAlert("Уведомление успешно удалено", Alert.AlertType.INFORMATION);
-                    } else {
-                        showAlert("Пользователя с таким логином не существует или уведомление уже удалено", Alert.AlertType.ERROR);
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                showAlert("Ошибка при работе с базой данных", Alert.AlertType.ERROR);
+            try {
+                Response resp = ClientContext.client().send(
+                        Request.of("DELETE_MESSAGES").put("username", login));
+                showAlert(resp.isOk() ? resp.getData() : resp.getError(),
+                        resp.isOk() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+            } catch (IOException e) {
+                showAlert("Ошибка связи с сервером.", Alert.AlertType.ERROR);
             }
         });
     }
@@ -87,113 +61,55 @@ public class MessagePage {
         String login = MessagePageLogin.getText();
         String sender = MessagePageSender.getText();
         String message = MessagePageTextField.getText();
-
-        if (login.isEmpty() || sender.isEmpty() || message.isEmpty()) {
-            showAlert("Заполните все поля", Alert.AlertType.ERROR);
-            return;
-        }
-
-        try (Connection connection = Connector.connect()) {
-            String userQuery = "SELECT * FROM users WHERE Username = ?";
-            try (PreparedStatement userStatement = connection.prepareStatement(userQuery)) {
-                userStatement.setString(1, login);
-                ResultSet userResultSet = userStatement.executeQuery();
-
-                if (userResultSet.next()) {
-                    String insertQuery = "INSERT INTO messages (Sender, Username, Message) VALUES (?, ?, ?)";
-                    try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
-                        insertStatement.setString(1, sender);
-                        insertStatement.setString(2, login);
-                        insertStatement.setString(3, message);
-                        insertStatement.executeUpdate();
-
-                        showAlert("Сообщение успешно отправлено", Alert.AlertType.INFORMATION);
-                        MessagePageLogin.clear();
-                        MessagePageSender.clear();
-                        MessagePageTextField.clear();
-                    }
-                } else {
-                    showAlert("Пользователя с таким логином не существует", Alert.AlertType.ERROR);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Ошибка при работе с базой данных", Alert.AlertType.ERROR);
+        try {
+            Response resp = ClientContext.client().send(Request.of("SEND_MESSAGE")
+                    .put("receiver", login).put("sender", sender).put("message", message));
+            showAlert(resp.isOk() ? "Сообщение отправлено" : resp.getError(),
+                    resp.isOk() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR);
+            if (resp.isOk()) MessagePageTextField.clear();
+        } catch (IOException e) {
+            showAlert("Ошибка связи с сервером.", Alert.AlertType.ERROR);
         }
     }
 
     private void saveMessagesToFile() {
-        try (Connection connection = Connector.connect()) {
-            String query = "SELECT * FROM messages";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                ResultSet resultSet = preparedStatement.executeQuery();
-
-                StringBuilder messages = new StringBuilder();
-
-                while (resultSet.next()) {
-                    String sender = resultSet.getString("Sender");
-                    String username = resultSet.getString("Username");
-                    String userMessage = resultSet.getString("Message");
-
-                    messages.append("Отправитель: ").append(sender).append("\n")
-                            .append("Логин пользователя: ").append(username).append("\n")
-                            .append("Сообщение: ").append(userMessage).append("\n\n");
-                }
-
-                String filePath = "D:\\apps\\IntelliJ IDEA 2026.2.4\\projects\\kursach_2023\\k1\\src\\main\\resources\\files\\MessagesTable.txt\"";
-
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-                    writer.write(messages.toString());
-                } catch (IOException e) {
-                    System.out.println("Ошибка при сохранении данных в файл.");
-                    e.printStackTrace();
-                    showAlert("Ошибка при сохранении данных в файл.", Alert.AlertType.ERROR);
-                }
-
+        try {
+            Response resp = ClientContext.client().send("GET_ALL_MESSAGES");
+            if (!resp.isOk()) { showAlert(resp.getError(), Alert.AlertType.ERROR); return; }
+            Path path = Path.of("src/main/resources/files/MessagesTable.txt");
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(path.toFile()))) {
+                for (String row : JsonCodec.parseDataList(resp.getData())) writer.write(row);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Ошибка при работе с базой данных", Alert.AlertType.ERROR);
+        } catch (IOException e) {
+            showAlert("Ошибка сохранения: " + e.getMessage(), Alert.AlertType.ERROR);
         }
-    }
-
-    private void showAlert(String message, Alert.AlertType alertType) {
-        Alert alert = new Alert(alertType);
-        alert.setContentText(message);
-        alert.showAndWait();
     }
 
     private void showMessage() {
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Показать сообщение");
-        dialog.setHeaderText("Введите логин пользователя:");
+        dialog.setTitle("Просмотр сообщений");
         dialog.setContentText("Логин:");
-
         dialog.showAndWait().ifPresent(login -> {
-            try (Connection connection = Connector.connect()) {
-                String query = "SELECT * FROM messages WHERE Username = ?";
-                try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                    preparedStatement.setString(1, login);
-                    ResultSet resultSet = preparedStatement.executeQuery();
-
-                    StringBuilder messages = new StringBuilder();
-
-                    while (resultSet.next()) {
-                        String userMessage = resultSet.getString("Message");
-                        messages.append(userMessage).append("\n");
-                    }
-
-                    if (messages.length() > 0) {
-                        MessagePageTextField.setText(messages.toString());
-                    } else {
-                        showAlert("Пользователя с таким логином не существует", Alert.AlertType.ERROR);
-                    }
+            try {
+                Response resp = ClientContext.client().send(
+                        Request.of("GET_MESSAGES").put("username", login));
+                if (resp.isOk()) {
+                    List<String> rows = JsonCodec.parseDataList(resp.getData());
+                    MessagePageTextField.setText(String.join("", rows));
+                } else {
+                    showAlert(resp.getError(), Alert.AlertType.ERROR);
                 }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                showAlert("Ошибка при работе с базой данных", Alert.AlertType.ERROR);
+            } catch (IOException e) {
+                showAlert("Ошибка связи с сервером.", Alert.AlertType.ERROR);
             }
         });
     }
 
+    private void showAlert(String message, Alert.AlertType alertType) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle("");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
 }

@@ -1,33 +1,53 @@
 package server;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import protocol.JsonCodec;
+import protocol.Request;
+import protocol.Response;
+
+import java.io.*;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 
-class ClientHandler implements Runnable {
+/**
+ * Obrabotka odnogo klienta: chitaet JSON-stroki, peredaet v RequestDispatcher,
+ * otvechaet JSON-strokoy. Odin potok na klienta (pul v Server).
+ */
+public class ClientHandler implements Runnable {
     private final Socket clientSocket;
+    private final RequestDispatcher dispatcher;
 
-    public ClientHandler(Socket clientSocket) {
+    public ClientHandler(Socket clientSocket, RequestDispatcher dispatcher) {
         this.clientSocket = clientSocket;
+        this.dispatcher = dispatcher;
     }
 
     @Override
     public void run() {
-        try (
-                BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true)
-        ) {
-            String input;
-            while ((input = reader.readLine()) != null) {
-                System.out.println("Received from client: " + input);
+        try (Socket socket = clientSocket;
+             BufferedReader reader = new BufferedReader(
+                     new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+             PrintWriter writer = new PrintWriter(
+                     new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true)) {
 
-                String response = "Response from server";
-                writer.println(response);
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.isBlank()) continue;
+                System.out.println("[SERVER] <- " + line);
+
+                Response response;
+                try {
+                    Request request = JsonCodec.readRequest(line);
+                    response = dispatcher.dispatch(request);
+                } catch (Exception e) {
+                    response = Response.failure("Некорректный запрос: " + e.getMessage());
+                }
+
+                String json = JsonCodec.writeResponse(response);
+                System.out.println("[SERVER] -> " + json);
+                writer.println(json);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("[SERVER] Клиент отключился: " + e.getMessage());
         }
     }
 }

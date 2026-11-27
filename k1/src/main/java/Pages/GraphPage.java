@@ -1,6 +1,11 @@
 package Pages;
 
-import Database.Connector;
+import java.io.IOException;
+import java.net.URL;
+import java.util.List;
+import java.util.ResourceBundle;
+
+import client.ClientContext;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -12,10 +17,6 @@ import javafx.scene.control.Button;
 import javafx.scene.text.Text;
 
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ResourceBundle;
 
 public class GraphPage {
@@ -51,32 +52,25 @@ public class GraphPage {
 
     private void loadSalaryData() {
         ObservableList<XYChart.Series<String, Number>> salaryData = FXCollections.observableArrayList();
-
         try {
-            Connection connection = Connector.connect();
-            String query = "SELECT EffectiveDate, Result FROM Salaries WHERE PositionName = (SELECT Position FROM Employees WHERE Username = ?)";
-
-            try (PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.setString(1, loggedInUsername);
-
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    XYChart.Series<String, Number> series = new XYChart.Series<>();
-                    series.setName("Зарплата");
-
-                    while (resultSet.next()) {
-                        series.getData().add(new XYChart.Data<>(resultSet.getString("EffectiveDate"), resultSet.getDouble("Result")));
+            protocol.Response resp = ClientContext.client().send(
+                    protocol.Request.of("SALARY_CHART").put("username", loggedInUsername));
+            if (resp.isOk()) {
+                XYChart.Series<String, Number> series = new XYChart.Series<>();
+                series.setName("Зарплата");
+                for (String point : protocol.JsonCodec.parseDataList(resp.getData())) {
+                    int sep = point.lastIndexOf('|');
+                    if (sep > 0) {
+                        series.getData().add(new XYChart.Data<>(
+                                point.substring(0, sep),
+                                Double.parseDouble(point.substring(sep + 1))));
                     }
-
-                    salaryData.add(series);
                 }
+                salaryData.add(series);
             }
-        } catch (SQLException e) {
+        } catch (IOException | NumberFormatException e) {
             e.printStackTrace();
-            showErrorDialog();
-        } finally {
-            Connector.close();
         }
-
         salaryChart.setData(salaryData);
     }
 

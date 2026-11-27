@@ -44,7 +44,9 @@ public class Connector {
         }
 
         if (connection == null || connection.isClosed()) {
-            connection = DriverManager.getConnection(getUrl(), getUser(), getPassword());
+            // Работаем с целевой БД salarysystem, а не со служебной postgres
+            connection = DriverManager.getConnection(
+                    buildUrl(DatabaseInitializer.getDatabaseName()), getUser(), getPassword());
         }
 
         return connection;

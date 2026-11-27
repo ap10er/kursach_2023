@@ -1,94 +1,47 @@
 package Pages;
 
+import java.io.IOException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.List;
 import java.util.ResourceBundle;
 
-import Database.Connector;
+import client.ClientContext;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.scene.text.Text;
+import protocol.JsonCodec;
+import protocol.Request;
+import protocol.Response;
 
 public class UserTicketsPage {
-
-    @FXML
-    private ResourceBundle resources;
-
-    @FXML
-    private URL location;
-
-    @FXML
-    private Text MainPageName;
-
-    @FXML
-    private Button UserTicketsPageBack;
-
-    @FXML
-    private TextArea UserTicketsPageTextField;
+    @FXML private ResourceBundle resources;
+    @FXML private URL location;
+    @FXML private Button UserTicketsPageBack;
+    @FXML private TextArea UserTicketsPageTextArea;
 
     private String loggedInUsername;
 
-    @FXML
-    private TextField UserTicketsSum;
-
-    @FXML
-    void initialize() {
-        UserTicketsPageBack.setOnAction(actionEvent -> UserTicketsPageBack.getScene().getWindow().hide());
+    public void setLoggedInUsername(String username) {
+        this.loggedInUsername = username;
+        loadTickets();
     }
 
-    public void setLoggedInUsername(String loggedInUsername) {
-        this.loggedInUsername = loggedInUsername;
-        loadPenaltiesData();
-    }
-
-    private void loadPenaltiesData() {
+    private void loadTickets() {
         try {
-            Connection connection = Connector.connect();
-            String query = "SELECT * FROM Penalties WHERE Username=?";
-
-            try (PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.setString(1, loggedInUsername);
-
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    StringBuilder penaltiesInfo = new StringBuilder();
-                    double totalSum = 0.0;
-
-                    while (resultSet.next()) {
-                        double fineAmount = resultSet.getDouble("FineAmount");
-                        String penaltyDate = resultSet.getString("PenaltyDate");
-                        String description = resultSet.getString("Description");
-
-                        totalSum += fineAmount;
-
-                        penaltiesInfo.append(String.format(
-                                "Размер штрафа:\n %.2f BYN\n Дата получения:\n %s\n Описание:\n %s%n",
-                                fineAmount, penaltyDate, description));
-                    }
-
-                    UserTicketsPageTextField.setText(penaltiesInfo.toString());
-                    UserTicketsSum.setText(String.format("%.2f", totalSum));
-                }
+            Response resp = ClientContext.client().send(
+                    Request.of("GET_PENALTIES").put("username", loggedInUsername));
+            if (resp.isOk()) {
+                List<String> rows = JsonCodec.parseDataList(resp.getData());
+                UserTicketsPageTextArea.setText(String.join("", rows));
+            } else {
+                UserTicketsPageTextArea.setText("Ошибка: " + resp.getError());
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showErrorDialog();
-        } finally {
-            Connector.close();
+        } catch (IOException e) {
+            UserTicketsPageTextArea.setText("Ошибка связи с сервером: " + e.getMessage());
         }
     }
 
-    private void showErrorDialog() {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("");
-        alert.setHeaderText(null);
-        alert.setContentText("Ошибка!");
-        alert.showAndWait();
+    @FXML void initialize() {
+        UserTicketsPageBack.setOnAction(e -> UserTicketsPageBack.getScene().getWindow().hide());
     }
 }
-

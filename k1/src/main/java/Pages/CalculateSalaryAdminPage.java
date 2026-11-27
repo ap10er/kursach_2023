@@ -6,12 +6,14 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
-import java.sql.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.nio.file.Path;
+import java.util.List;
 import java.util.ResourceBundle;
 
-import Database.Connector;
+import client.ClientContext;
+import protocol.JsonCodec;
+import protocol.Request;
+import protocol.Response;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -74,101 +76,63 @@ public class CalculateSalaryAdminPage {
             double ticketsFine = Double.parseDouble(SalaryPageTickets.getText());
             String positionName = CalculateSalaryAdminPagePositionName.getText();
 
-            // Проверка существования должности в таблице Positions
             if (!positionExists(positionName)) {
                 showErrorDialog("Такой должности нет в таблице Positions.");
                 return;
             }
 
-            // Вычисление итоговой зарплаты
             double grossSalary = baseSalary + (hoursWorked * ratePerHour) - ticketsFine + bonus;
             double netSalary = grossSalary * 0.87;
 
-            // Создание подключения к базе данных
-            try (Connection connection = Connector.connect()) {
-                String insertQuery = "INSERT INTO Salaries (PositionName, BaseRate, Bonus, WorkedHours, RatePerHour, Result) VALUES (?, ?, ?, ?, ?, ?)";
-
-                try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS)) {
-
-                    preparedStatement.setString(1, positionName);
-                    preparedStatement.setDouble(2, baseSalary);
-                    preparedStatement.setDouble(3, bonus);
-                    preparedStatement.setDouble(4, hoursWorked);
-                    preparedStatement.setDouble(5, ratePerHour);
-                    preparedStatement.setDouble(6, netSalary);
-
-
-                    preparedStatement.executeUpdate();
-
-
-                    try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
-                        if (generatedKeys.next()) {
-                            int salaryID = generatedKeys.getInt(1);
-                            // Теперь вы можете использовать salaryID по вашему усмотрению
-                            System.out.println("Новая запись в таблицу Salaries добавлена успешно. ID записи: " + salaryID);
-                        } else {
-                            System.out.println("Не удалось получить ID для новой записи в таблицу Salaries.");
-                        }
-                    }
-                }
-            } catch (SQLException e) {
-                showErrorDialog("Ошибка при выполнении SQL-запроса.");
+            Request req = Request.of("ADD_SALARY")
+                    .put("positionName", positionName)
+                    .put("baseRate", String.valueOf(baseSalary))
+                    .put("bonus", String.valueOf(bonus))
+                    .put("workedHours", String.valueOf(hoursWorked))
+                    .put("ratePerHour", String.valueOf(ratePerHour))
+                    .put("result", String.valueOf(netSalary));
+            Response resp = ClientContext.client().send(req);
+            if (resp.isOk()) {
+                System.out.println("[CLIENT] " + resp.getData());
+            } else {
+                showErrorDialog(resp.getError());
             }
         } catch (NumberFormatException e) {
             showErrorDialog("Введите числовые значения во все поля");
+        } catch (IOException e) {
+            showErrorDialog("Ошибка связи с сервером.");
         }
     }
 
-    // Метод для проверки существования должности в таблице Positions
     private boolean positionExists(String positionName) {
-        try (Connection connection = Connector.connect()) {
-            String query = "SELECT * FROM Positions WHERE PositionName = ?";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-                preparedStatement.setString(1, positionName);
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    return resultSet.next(); // Если запись существует, возвращается true
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        try {
+            Response resp = ClientContext.client().send(
+                    Request.of("POSITION_EXISTS").put("positionName", positionName));
+            return resp.isOk() && Boolean.parseBoolean(resp.getData());
+        } catch (IOException e) {
             return false;
         }
     }
 
 
     private void saveSalaryTableToFile() {
-
-        String filePath = "D:\\apps\\IntelliJ IDEA 2026.2.4\\projects\\kursach_2023\\k1\\src\\main\\resources\\files\\SalaryTable.txt\"";
-
-        try (Connection connection = Connector.connect(); /* инициализируйте ваше соединение с базой данных */) {
-            String query = "SELECT * FROM Salaries";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(query);
-                 ResultSet resultSet = preparedStatement.executeQuery()) {
-
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
-                    while (resultSet.next()) {
-                        int salaryID = resultSet.getInt("SalaryID");
-                        String positionName = resultSet.getString("PositionName");
-                        double baseRate = resultSet.getDouble("BaseRate");
-                        double bonus = resultSet.getDouble("Bonus");
-                        int workedHours = resultSet.getInt("WorkedHours");
-                        double ratePerHour = resultSet.getDouble("RatePerHour");
-                        String effectiveDate = resultSet.getString("EffectiveDate");
-                        double result = resultSet.getDouble("Result");
-
-                        writer.write("Номер: " + salaryID + "\n" + "Должность: " + positionName + "\n" +
-                                "Базовая ставка: " + baseRate + "\n" + "Премия: " + bonus + "\n" +
-                                "Кол-во отработанных часов: " + workedHours + "\n" + "Оплата в час: " + ratePerHour + "\n" +
-                                "Дата получения зарплаты: " + effectiveDate + "\n" + "Итого: " + result + "\n");
-                        writer.newLine();
-                    }
-                    System.out.println("Сохранение выполнено успешно.");
-                } catch (IOException e) {
-                    showErrorDialog("Ошибка при сохранении в файл.");
-                }
+        Path path = Path.of("src/main/resources/files/SalaryTable.txt");
+        try {
+            Response resp = ClientContext.client().send("GET_SALARIES");
+            if (!resp.isOk()) {
+                showErrorDialog(resp.getError());
+                return;
             }
-        } catch (SQLException e) {
-            showErrorDialog("Ошибка при выполнении SQL-запроса.");
+            List<String> rows = JsonCodec.parseDataList(resp.getData());
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(path.toFile()))) {
+                for (String row : rows) {
+                    writer.write(row);
+                    writer.newLine();
+                }
+                System.out.println("Сохранение выполнено успешно: " + path);
+            }
+        } catch (IOException e) {
+            showErrorDialog("Ошибка при сохранении в файл.");
         }
     }
 

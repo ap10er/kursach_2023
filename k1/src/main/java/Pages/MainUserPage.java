@@ -1,11 +1,8 @@
 package Pages;
 
 import java.io.IOException;
+import java.io.IOException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.ResourceBundle;
 
@@ -185,42 +182,20 @@ public class MainUserPage {
     }
 
     private String getUserInfoFromDatabase(String username) {
-        String userInfo = "";
-
         try {
-            Connection connection = Connector.connect();
-            String query = "SELECT * FROM Employees WHERE Username=?";
-
-            try (PreparedStatement statement = connection.prepareStatement(query)) {
-                statement.setString(1, username);
-
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    if (resultSet.next()) {
-                        int employeeId = resultSet.getInt("EmployeeID");
-                        String lastName = resultSet.getString("Lastname");
-                        String firstName = resultSet.getString("Firstname");
-                        String middleName = resultSet.getString("Middlename");
-                        String employeeNumber = resultSet.getString("Number");
-                        double salary = resultSet.getDouble("Salary");
-                        Date hireDate = resultSet.getDate("HireDate");
-                        String employeeUsername = resultSet.getString("Username");
-                        String departmentName = resultSet.getString("DepartmentName");
-                        String employeePosition = resultSet.getString("Position");
-
-                        userInfo = String.format(
-                                "Айди сотрудника: %d\nФамилия: %s\nИмя: %s\nОтчество: %s\nНомер телефона: %s\nЗарплата: %.2f\nДата найма: %s\nЛогин: %s\nНазвание отдела:\n %s\nДолжность: %s",
-                                employeeId, lastName, firstName, middleName, employeeNumber, salary, hireDate, employeeUsername, departmentName, employeePosition);
-                    }
+            protocol.Response resp = client.ClientContext.client().send(
+                    protocol.Request.of("EMPLOYEE_PROFILE").put("username", username));
+            if (resp.isOk()) {
+                StringBuilder sb = new StringBuilder("Айди сотрудника: -\n");
+                for (String line : resp.getData().split("\n")) {
+                    sb.append(line).append('\n');
                 }
+                return sb.toString();
             }
-        } catch (SQLException e) {
+        } catch (IOException e) {
             e.printStackTrace();
-            showErrorDialog();
-        } finally {
-            Connector.close();
         }
-
-        return userInfo;
+        return "";
     }
 
     public void openLoginPage() {

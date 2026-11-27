@@ -12,6 +12,10 @@ public final class DatabaseInitializer {
 
     private static final String DB_NAME = "salarysystem";
 
+    public static String getDatabaseName() {
+        return DB_NAME;
+    }
+
     private DatabaseInitializer() {
     }
 
@@ -21,11 +25,14 @@ public final class DatabaseInitializer {
         }
         createTables();
         createAdminUser();
+        System.out.println("Database initialization completed.");
     }
 
 
     private static boolean databaseExists() throws SQLException {
-        String adminUrl = Connector.buildUrl("salarysystem");
+        // Подключаемся к служебной БД postgres, а не к salarysystem,
+        // которую ещё нужно проверить/создать
+        String adminUrl = Connector.buildUrl("postgres");
         try (Connection adminConnection = DriverManager.getConnection(
                 adminUrl, Connector.getUser(), Connector.getPassword());
              Statement statement = adminConnection.createStatement();
@@ -39,7 +46,7 @@ public final class DatabaseInitializer {
      * Создаёт базу данных {@code salarysystem}.
      */
     private static void createDatabase() throws SQLException {
-        String adminUrl = Connector.buildUrl("salarysystem");
+        String adminUrl = Connector.buildUrl("postgres");
         try (Connection adminConnection = DriverManager.getConnection(
                 adminUrl, Connector.getUser(), Connector.getPassword());
              Statement statement = adminConnection.createStatement()) {

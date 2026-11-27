@@ -3,9 +3,10 @@ package Pages;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.sql.*;
 
-import Database.Connector;
+import client.ClientContext;
+import protocol.Request;
+import protocol.Response;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -55,13 +56,7 @@ public class RegPage {
     void initialize() {
 
         RegPageBack.setOnAction(actionEvent -> openLoginPage());
-        RegPageReg.setOnAction(actionEvent -> {
-            try {
-                registerUser();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        RegPageReg.setOnAction(actionEvent -> registerUser());
 
     }
 
@@ -73,8 +68,7 @@ public class RegPage {
         }
     }
 
-    private void registerUser() throws SQLException {
-
+    private void registerUser() {
         String login = RegPageLogin.getText();
         String password = RegPagePassword.getText();
         String passwordAccept = RegPagePasswordAccept.getText();
@@ -87,79 +81,48 @@ public class RegPage {
             return;
         }
 
-        //проверка на дубликат логина
         try {
-            Connection connection = Connector.connect();
-
-            String selectEmployeeQuery = "SELECT * FROM Employees WHERE Lastname = ? AND Firstname = ? AND Middlename = ?";
-            try (PreparedStatement selectEmployeeStatement = connection.prepareStatement(selectEmployeeQuery)) {
-                selectEmployeeStatement.setString(1, lastname);
-                selectEmployeeStatement.setString(2, firstname);
-                selectEmployeeStatement.setString(3, middlename);
-
-                try (ResultSet employeeResultSet = selectEmployeeStatement.executeQuery()) {
-                    if (employeeResultSet.next()) {
-
-                        String departmentName = employeeResultSet.getString("DepartmentName");
-                        String existingUsername = employeeResultSet.getString("Username");
-                        if (existingUsername != null) {
-                            showErrorDialog("Этот пользователь уже зарегистрирован");
-                            RegPageLastName.clear();
-                            RegPageName.clear();
-                            RegPageNameMiddleName.clear();
-                            RegPageLogin.clear();
-                            RegPagePassword.clear();
-                            RegPagePasswordAccept.clear();
-                            RegPageNumber.clear();
-                            return;
-                        }
-
-                        String role = determineRole(departmentName);
-
-                        String insertUserQuery = "INSERT INTO users (Username, Password, Role) VALUES (?, ?, ?)";
-                        try (PreparedStatement insertUserStatement = connection.prepareStatement(insertUserQuery, Statement.RETURN_GENERATED_KEYS)) {
-                            insertUserStatement.setString(1, login);
-                            insertUserStatement.setString(2, password);
-                            insertUserStatement.setString(3, role);
-
-                            insertUserStatement.executeUpdate();
-                        }
-
-                        String updateEmployeeQuery = "UPDATE Employees SET Username = ? WHERE Lastname = ? AND Firstname = ? AND Middlename = ?";
-                        try (PreparedStatement updateEmployeeStatement = connection.prepareStatement(updateEmployeeQuery)) {
-                            updateEmployeeStatement.setString(1, login);
-                            updateEmployeeStatement.setString(2, lastname);
-                            updateEmployeeStatement.setString(3, firstname);
-                            updateEmployeeStatement.setString(4, middlename);
-
-                            updateEmployeeStatement.executeUpdate();
-                        }
-
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        alert.setTitle("");
-                        alert.setHeaderText(null);
-                        alert.setContentText("Регистрация прошла успешно!");
-                        alert.showAndWait();
-
-                        RegPageLastName.clear();
-                        RegPageName.clear();
-                        RegPageNameMiddleName.clear();
-                        RegPageLogin.clear();
-                        RegPagePassword.clear();
-                        RegPagePasswordAccept.clear();
-
-                        openLoginPage();
-                    } else {
-                        showErrorDialog("Пользователь с такими ФИО не найден в таблице Employees");
-                    }
+            // Сначала узнаём отдел сотрудника, чтобы сервер определил роль
+            Request find = Request.of("SEARCH_EMPLOYEE")
+                    .put("fullName", lastname + " " + firstname + " " + middlename);
+            Response found = ClientContext.client().send(find);
+            if (!found.isOk()) {
+                showErrorDialog("Пользователь с такими ФИО не найден в таблице Employees");
+                return;
+            }
+            String department = "";
+            java.util.List<String> rows = protocol.JsonCodec.parseDataList(found.getData());
+            for (String row : rows) {
+                if (row.contains("Отдел:")) {
+                    department = row.substring(row.indexOf("Отдел:") + 6).trim();
+                    break;
                 }
             }
 
-        } catch (SQLException e) {
+            Request req = Request.of("REGISTER")
+                    .put("login", login).put("password", password)
+                    .put("lastname", lastname).put("firstname", firstname)
+                    .put("middlename", middlename).put("department", department);
+            Response resp = ClientContext.client().send(req);
+            if (resp.isOk()) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("");
+                alert.setHeaderText(null);
+                alert.setContentText(resp.getData());
+                alert.showAndWait();
+                RegPageLastName.clear();
+                RegPageName.clear();
+                RegPageNameMiddleName.clear();
+                RegPageLogin.clear();
+                RegPagePassword.clear();
+                RegPagePasswordAccept.clear();
+                openLoginPage();
+            } else {
+                showErrorDialog(resp.getError());
+            }
+        } catch (IOException e) {
             e.printStackTrace();
-            showErrorDialog("Ошибка при работе с базой данных.");
-        } finally {
-            Connector.close();
+            showErrorDialog("Ошибка связи с сервером.");
         }
     }
 

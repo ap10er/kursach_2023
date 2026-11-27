@@ -2,11 +2,12 @@ package Pages;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.Optional;
 import java.util.ResourceBundle;
+
+import protocol.Request;
+import protocol.Response;
+import client.ClientContext;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -18,8 +19,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-
-import static Database.Connector.connect;
 
 public class MainAdminPage {
 
@@ -133,38 +132,20 @@ public class MainAdminPage {
         dialog.setContentText("Логин:");
 
         Optional<String> result = dialog.showAndWait();
-        result.ifPresent(username -> {
-            try {
-                removeEmployee(username);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        });
+        result.ifPresent(username -> removeEmployee(username));
     }
 
-    public void removeEmployee(String fullname) throws SQLException {
-        String deleteEmployeeQuery = "DELETE FROM employees WHERE Username = ?";
-        String deleteUserQuery = "DELETE FROM users WHERE Username = ?";
-
-        try (Connection connection = connect();
-             PreparedStatement deleteEmployeeStatement = connection.prepareStatement(deleteEmployeeQuery);
-             PreparedStatement deleteUserStatement = connection.prepareStatement(deleteUserQuery)) {
-
-            deleteEmployeeStatement.setString(1, fullname);
-            int employeeDeleted = deleteEmployeeStatement.executeUpdate();
-
-            deleteUserStatement.setString(1, fullname);
-            deleteUserStatement.executeUpdate();
-
-            if (employeeDeleted > 0) {
+    public void removeEmployee(String username) {
+        try {
+            Response resp = ClientContext.client().send(
+                    Request.of("DELETE_EMPLOYEE_BY_USERNAME").put("username", username));
+            if (resp.isOk() && !resp.getData().endsWith(": 0")) {
                 showSuccessDialog("Сотрудник успешно удален!");
             } else {
                 showErrorDialog("Сотрудника с таким именем пользователя не найдено!");
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw e;
+        } catch (IOException e) {
+            showErrorDialog("Ошибка связи с сервером.");
         }
     }
 
